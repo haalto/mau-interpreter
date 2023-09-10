@@ -1,5 +1,6 @@
 import { createInterface } from "node:readline";
 import { Lexer } from "./lexer";
+import { Parser } from "./parser";
 
 const rl = createInterface({
   input: process.stdin,
@@ -20,10 +21,15 @@ async function repl() {
 
   while (input !== "exit") {
     const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
 
-    while (lexer.ch !== "") {
-      console.log(lexer.nextToken());
+    if (parser.getErrors().length > 0) {
+      console.log(parser.getErrors());
     }
+
+    console.log(program.getStringRepresentation());
+
     input = await prompt(">> ");
   }
 

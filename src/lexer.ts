@@ -1,10 +1,6 @@
 import { Token, TokenType, lookupIdent } from "./token";
 
 interface BasicLexer {
-  input: string;
-  position: number;
-  readPosition: number;
-  ch: string;
   nextToken(): Token;
 }
 
