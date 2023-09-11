@@ -78,6 +78,7 @@ export class Lexer implements BasicLexer {
 
   nextToken(): Token {
     let token: Token;
+
     this.skipWhitespace();
 
     switch (this.ch) {

@@ -28,7 +28,7 @@ async function repl() {
       console.log(parser.getErrors());
     }
 
-    console.log(program.getStringRepresentation());
+    console.log(program.statements);
 
     input = await prompt(">> ");
   }

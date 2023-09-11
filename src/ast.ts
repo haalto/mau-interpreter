@@ -17,6 +17,56 @@ export interface AST extends Node {
   statements: Statement[];
 }
 
+export class PrefixExpression implements Expression {
+  token: Token;
+  operator: string;
+  right?: Expression;
+
+  constructor(token: Token, operator: string) {
+    this.token = token;
+    this.operator = operator;
+  }
+
+  getStringRepresentation(): string {
+    return `(${this.operator}${this.right?.getStringRepresentation()})`;
+  }
+
+  expressionNode(): void {
+    throw new Error("Method not implemented.");
+  }
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+}
+
+export class InfixExpression implements Expression {
+  token: Token;
+  left?: Expression;
+  operator: string;
+  right?: Expression;
+
+  constructor(token: Token, operator: string, left?: Expression) {
+    this.token = token;
+    this.operator = operator;
+    this.left = left;
+  }
+
+  getStringRepresentation(): string {
+    return `(${this.left?.getStringRepresentation()} ${
+      this.operator
+    } ${this.right?.getStringRepresentation()})`;
+  }
+
+  expressionNode(): void {
+    throw new Error("Method not implemented.");
+  }
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+}
+
 export class Identifier implements Expression {
   token: Token;
   value: string;
@@ -86,7 +136,7 @@ export class ExpressionStatement implements Statement {
 export class LetStatement implements Statement {
   token: Token;
   name: Identifier;
-  value?: Expression;
+  value: Expression;
 
   constructor(token: Token) {
     this.token = token;

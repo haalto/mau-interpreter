@@ -1,8 +1,10 @@
 import {
   ExpressionStatement,
   Identifier,
+  InfixExpression,
   IntegerLiteral,
   LetStatement,
+  PrefixExpression,
   ReturnStatement,
 } from "../src/ast";
 import { Lexer } from "../src/lexer";
@@ -47,12 +49,12 @@ describe("parser", () => {
     const parser = new Parser(lexer);
     parser.parseProgram();
     const errors = parser.getErrors();
-
-    expect(errors.length).toBe(3);
+    expect(errors.length).toBeGreaterThan(0);
 
     expect(errors[0]).toBe("expected next token to be =, got INT instead");
     expect(errors[1]).toBe("expected next token to be IDENT, got = instead");
-    expect(errors[2]).toBe("expected next token to be IDENT, got INT instead");
+    expect(errors[2]).toBe("no prefix parse function for = found");
+    expect(errors[3]).toBe("expected next token to be IDENT, got INT instead");
   });
 
   it("should parse a simple return statement", () => {
@@ -141,5 +143,94 @@ describe("parser", () => {
 
     expect(integerLiteral.tokenLiteral()).toBe("5");
     expect(integerLiteral.value).toBe(5);
+  });
+
+  it("should parse a simple prefix expression statement", () => {
+    const input = `
+      !5;
+      -15;
+    `;
+
+    const expectedOperators = ["!", "-"];
+    const expectedValues = [5, 15];
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    const program = parser.parseProgram();
+    const statements = program.statements;
+
+    expect(statements.length).toBe(2);
+
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+
+      if (
+        !(statement instanceof ExpressionStatement) ||
+        !(statement.expression instanceof PrefixExpression)
+      ) {
+        throw new Error("Expected expression statement");
+      }
+
+      const prefixExpression = statement.expression;
+      const integerLiteral = prefixExpression.right;
+
+      if (!(integerLiteral instanceof IntegerLiteral)) {
+        throw new Error("Expected integer literal");
+      }
+
+      expect(prefixExpression.operator).toBe(expectedOperators[i]);
+      expect(integerLiteral.value).toBe(expectedValues[i]);
+    }
+  });
+
+  it("should parse a simple infix expression statement", () => {
+    const input = `
+      5 + 5;
+      5 - 5;
+      5 * 5;
+      5 / 5;
+      5 > 5;
+      5 < 5;
+      5 == 5;
+      5 != 5;
+    `;
+
+    const expectedOperators = ["+", "-", "*", "/", ">", "<", "==", "!="];
+
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+
+    const program = parser.parseProgram();
+    const statements = program.statements;
+    console.log(statements);
+    expect(statements.length).toBe(8);
+
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+
+      if (
+        !(statement instanceof ExpressionStatement) ||
+        !(statement.expression instanceof InfixExpression)
+      ) {
+        throw new Error("Expected expression statement");
+      }
+
+      const infixExpression = statement.expression;
+      const left = infixExpression.left;
+      const right = infixExpression.right;
+
+      if (!(left instanceof IntegerLiteral)) {
+        throw new Error("Expected integer literal");
+      }
+
+      if (!(right instanceof IntegerLiteral)) {
+        throw new Error("Expected integer literal");
+      }
+
+      expect(left.value).toBe(5);
+      expect(right.value).toBe(5);
+      expect(infixExpression.operator).toBe(expectedOperators[i]);
+    }
   });
 });
